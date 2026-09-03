@@ -311,7 +311,8 @@ function renderLayer(l, step){
         grid.appendChild(btn);
       });
       box.appendChild(grid);
-      if (multi){
+      const hasBtnLayer = (step.layers || []).some(l => l.type === 'button');
+      if (multi && !hasBtnLayer){
         const cont = h('button','cta'); cont.textContent = 'Continuar'; cont.style.marginTop = '14px';
         cont.onclick = () => {
           const picked = (c.options||[]).find(o => o._sel && o.destination && o.destination !== 'next');
