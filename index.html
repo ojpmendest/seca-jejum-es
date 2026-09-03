@@ -28,6 +28,9 @@
   .ql-align-center{text-align:center}
   img{max-width:100%;height:auto;display:block}
   .stack > * + *{margin-top:12px}
+  .row{display:flex;gap:10px;align-items:flex-start}
+  .row .opts{gap:8px}
+  .conv{font-size:.72rem;color:var(--content);text-align:center;margin-top:8px;line-height:1.4}
   .spacer{height:16px}
   .imgwrap{display:flex;justify-content:center}
   .imgwrap img{border-radius:var(--radius);max-height:340px;width:auto}
@@ -74,6 +77,23 @@
   .ring{width:96px;height:96px;margin:0 auto 14px}
   .note{font-size:.75rem;color:#b6bcc3;text-align:center;padding:10px}
 </style>
+<!-- Meta Pixel Code -->
+<script>
+!function(f,b,e,v,n,t,s)
+{if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+n.queue=[];t=b.createElement(e);t.async=!0;
+t.src=v;s=b.getElementsByTagName(e)[0];
+s.parentNode.insertBefore(t,s)}(window, document,'script',
+'https://connect.facebook.net/en_US/fbevents.js');
+fbq('init', '2685263701929706');
+fbq('track', 'PageView');
+</script>
+<noscript><img height="1" width="1" style="display:none"
+src="https://www.facebook.com/tr?id=2685263701929706&ev=PageView&noscript=1"
+/></noscript>
+<!-- End Meta Pixel Code -->
 </head>
 <body>
 <div id="app">
@@ -131,10 +151,23 @@ function render(isBack){
   m.style.animation = 'none'; void m.offsetWidth; m.style.animation = '';
   const wrap = document.createElement('div');
   wrap.className = 'stack';
+  // group consecutive layers with basis < 100 into side-by-side rows
+  let row = null, rowSum = 0;
+  const flush = () => { if (row){ wrap.appendChild(row); row = null; rowSum = 0; } };
   (step.layers || []).forEach(l => {
     const el = renderLayer(l, step);
-    if (el) wrap.appendChild(el);
+    if (!el) return;
+    const d = l.design;
+    const b = (d && !Array.isArray(d) && d.basis != null) ? parseFloat(d.basis) : 100;
+    if (b >= 100 || isNaN(b)) { flush(); wrap.appendChild(el); return; }
+    if (row && rowSum + b > 101) flush();
+    if (!row){ row = document.createElement('div'); row.className = 'row'; }
+    el.style.flex = '0 1 ' + b + '%';
+    el.style.minWidth = '0';
+    row.appendChild(el);
+    rowSum += b;
   });
+  flush();
   // auto-advance for loading-only steps handled in renderLayer
   m.appendChild(wrap);
   window.scrollTo(0,0);
@@ -171,7 +204,10 @@ function renderLayer(l, step){
     case 'button': {
       const b = h('button','cta'); b.textContent = c.label || 'Continuar';
       b.onclick = () => {
-        if (c.type === 'redirect' && /^https?:/.test(c.destination || '')) { window.open(c.destination, '_blank'); return; }
+        if (c.type === 'redirect' && /^https?:/.test(c.destination || '')) {
+          if (window.fbq) fbq('track', 'InitiateCheckout');
+          window.open(c.destination, '_blank'); return;
+        }
         goto(c.destination);
       };
       return b;
@@ -276,6 +312,7 @@ function renderLayer(l, step){
       if (c.before) box.appendChild(h('div','before', c.before));
       box.appendChild(h('div','big', c.value || ''));
       if (c.after) box.appendChild(h('div','after', c.after));
+      box.appendChild(h('div','conv', 'El importe se cobra convertido automáticamente a la moneda de tu país.'));
       return box;
     }
     case 'loading': {
