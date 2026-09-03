@@ -68,6 +68,12 @@
     border-radius:var(--radius);padding:12px 14px;font:inherit;font-size:.98rem;color:var(--title);cursor:pointer;min-height:var(--el)}
   .opt:hover{border-color:var(--theme)}
   .opt.sel{border-color:var(--theme);background:color-mix(in srgb,var(--theme) 8%,#fff)}
+  .opt.sel.chkstyle{background:var(--theme)}
+  .opt.sel.chkstyle *{color:#fff!important}
+  .opt .chk{flex:none;width:24px;height:24px;border:2px solid #cfd4da;border-radius:6px;position:relative;background:#fff}
+  .opt.sel .chk{border-color:#fff}
+  .opt.sel .chk::after{content:"";position:absolute;left:7px;top:3px;width:6px;height:11px;border:solid var(--theme);border-width:0 2px 2px 0;transform:rotate(45deg)}
+  .opt.col .chk{position:absolute;top:8px;right:8px}
   .opt img{width:52px;height:52px;object-fit:contain;border-radius:10px;flex:none}
   .opt .emoji{font-size:28px;line-height:1;flex:none}
   .opt:not(.col) > div{flex:1}
@@ -282,23 +288,26 @@ function renderLayer(l, step){
       const multi = !!c.multiple;
       const dz = l.design || {};
       const vertical = dz.orientation === 'vertical';
-      const showChev = ['right','select','arrow','chevron'].includes(dz.icon) && (dz.iconPosition || 'end') === 'end';
+      const showCheck = dz.icon === 'select';
+      const showChev = ['right','arrow','chevron'].includes(dz.icon) && (dz.iconPosition || 'end') === 'end';
       const grid = h('div','opts' + (dz.grid === 'grid-cols-2' ? ' grid2' : ''));
       (c.options||[]).forEach(o => {
         const isEmoji = o.image && o.image.type === 'emoji' && o.image.src;
         const isImg = o.image && o.image.src && !isEmoji;
         const hasIcon = isImg || isEmoji;
-        const btn = h('button','opt' + (vertical ? ' col' : (dz.order === 'reverse' && hasIcon ? ' rev' : '')));
+        const btn = h('button','opt' + (vertical ? ' col' : (dz.order === 'reverse' && hasIcon ? ' rev' : '')) + (showCheck ? ' chkstyle' : ''));
         if (isImg){ const im = h('img'); im.src = o.image.src; im.alt=''; btn.appendChild(im); }
         else if (isEmoji){ btn.appendChild(h('span','emoji', o.image.src)); }
         if (vertical){
           const lbl = h('div','lbl');
           lbl.appendChild(h('div','', fillVars(o.label)));
           if (showChev) lbl.appendChild(h('span','chev','›'));
+          if (showCheck) lbl.appendChild(h('span','chk'));
           btn.appendChild(lbl);
         } else {
           btn.appendChild(h('div','', fillVars(o.label)));
           if (showChev) btn.appendChild(h('span','chev','›'));
+          if (showCheck) btn.appendChild(h('span','chk'));
         }
         btn.onclick = () => {
           if (multi){
