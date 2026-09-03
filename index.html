@@ -20,8 +20,7 @@
   header .bar > i{display:block;height:100%;background:var(--theme);width:0;transition:width .35s ease}
   header .logo{display:block;height:28px;margin:0 auto 8px}
   .back{position:absolute;left:16px;top:12px;border:0;background:none;font-size:20px;color:#9aa0a6;cursor:pointer;line-height:1}
-  main{flex:1;min-width:0;padding:14px 20px 28px;display:flex;flex-direction:column;justify-content:center}
-  #app.tall main{justify-content:flex-start}
+  main{flex:1;min-width:0;padding:14px 20px 28px;display:flex;flex-direction:column;justify-content:safe center}
   main > .stack{width:100%;min-width:0;animation:fade .34s cubic-bezier(.22,.61,.36,1) both;will-change:opacity,transform}
   @media (prefers-reduced-motion:reduce){main > .stack{animation:none}}
   @keyframes fade{from{opacity:0;transform:translateX(16px)}to{opacity:1;transform:translateX(0)}}
@@ -257,9 +256,6 @@ function render(isBack){
   document.getElementById('prog').style.width = Math.round((stepIndex+1)/quiz.steps.length*100) + '%';
   document.getElementById('back').style.visibility = history.length ? 'visible' : 'hidden';
   document.getElementById('app').classList.toggle('intro', stepIndex === 0);
-  const ls = step.layers || [];
-  const isTall = ls.length > 7 || ls.some(l => ['price','charts','arguments','carousel'].includes(l.type));
-  document.getElementById('app').classList.toggle('tall', isTall);
   window.scrollTo(0, 0);
   const m = document.getElementById('main');
   m.innerHTML = '';
