@@ -11070,8 +11070,8 @@
   "design": {
     "logo": {
       "type": "image",
-      "src": "img/a/tK7Hk-91qsk-frame-682-2-1-1.png",
-      "width": 258,
+      "src": "img/logo.png",
+      "width": 264,
       "height": 49
     },
     "themeColor": "#14b8a6",
