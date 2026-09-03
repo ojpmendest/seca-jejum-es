@@ -30,7 +30,7 @@
   .ql-align-center{text-align:center}
   img{max-width:100%;height:auto;display:block}
   .stack > * + *{margin-top:12px}
-  .row{display:flex;gap:10px;align-items:flex-start}
+  .row{display:flex;gap:10px;align-items:flex-start;justify-content:center}
   .row .opts{gap:8px}
   .conv{font-size:.72rem;color:var(--content);text-align:center;margin-top:8px;line-height:1.4}
   .scarcity{display:flex;gap:6px;align-items:center;justify-content:center;text-align:center;
@@ -111,13 +111,22 @@
   .ruler-mark::after{content:"";position:absolute;bottom:-7px;left:50%;transform:translateX(-50%);border:7px solid transparent;border-top-color:var(--theme)}
   .ruler-hint{font-size:.82rem;color:var(--content);margin:10px 0 20px}
   .metric{margin:14px 0}
+  .metric-head{display:flex;justify-content:space-between;align-items:baseline;font-weight:600;font-size:.92rem;color:var(--title)}
+  .metric-head .pct{font-weight:800}
+  .metric-sub{color:var(--content);font-size:.85rem;margin:2px 0 8px}
   .metric .track{position:relative;height:12px;border-radius:999px;
-    background:linear-gradient(90deg,#dc2626,#fbbf24 55%,#22c55e)}
+    background:linear-gradient(90deg,#22c55e,#fbbf24 50%,#dc2626)}
   .metric .track.solid{background:#e6e8eb}
   .metric .track > b{position:absolute;top:50%;width:20px;height:20px;border-radius:50%;background:#fff;
-    border:3px solid var(--theme);transform:translate(-50%,-50%)}
+    border:3px solid var(--theme);transform:translate(-50%,-50%);box-shadow:0 1px 4px rgba(0,0,0,.2)}
   .metric .track > u{position:absolute;top:50%;height:12px;border-radius:999px;background:var(--theme);transform:translateY(-50%);left:0}
   .legends{display:flex;justify-content:space-between;color:var(--content);font-size:.78rem;margin-top:6px}
+  .arg-card{border:1px solid #e6e8eb;border-radius:var(--radius);padding:16px 16px 14px;text-align:center}
+  .arg-emoji{font-size:34px;line-height:1;margin-bottom:4px}
+  .arg-img{display:flex;justify-content:center;margin-bottom:6px}
+  .arg-img img{width:46px;height:46px;object-fit:contain}
+  .arg-card h1,.arg-card h2,.arg-card h3{font-size:1.05rem;margin:.15em 0}
+  .arg-card p{font-size:.9rem;margin:.35em 0 0;line-height:1.45}
   .sub{font-weight:600;margin-top:8px}
   .alert{border-radius:var(--radius);padding:14px 16px;font-size:.95rem}
   .alert.info{background:#eff6ff;color:#1e3a8a}
@@ -127,12 +136,17 @@
   .carousel{display:flex;gap:12px;overflow-x:auto;padding-bottom:8px;scroll-snap-type:x mandatory}
   .carousel > div{flex:0 0 78%;scroll-snap-align:center}
   .carousel img{border-radius:var(--radius)}
-  .price{border:2px solid var(--theme);border-radius:var(--radius);padding:16px;text-align:center}
-  .price .feat{color:var(--content);font-weight:600;font-size:.9rem}
-  .price .big{font-size:2rem;font-weight:800;color:var(--theme)}
-  .price .before{color:var(--content);font-size:.85rem}
-  .price .after{color:var(--content);font-size:.85rem;margin-top:4px}
-  svg.chart{width:100%;height:180px;overflow:visible}
+  .price{border:2px solid var(--theme);border-radius:var(--radius);overflow:hidden;text-align:left}
+  .price .feat{background:var(--theme);color:#fff;font-weight:700;font-size:.9rem;padding:9px 12px;text-align:center}
+  .price .pbody{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:16px}
+  .price .ptitle{flex:1;font-weight:800;font-size:1.02rem;line-height:1.25}
+  .price .ptitle p{margin:0;font:inherit}
+  .price .pcol{flex:none;text-align:right}
+  .price .big{font-size:1.75rem;font-weight:800;color:var(--theme);line-height:1}
+  .price .before{color:var(--content);font-size:.8rem}
+  .price .after{color:var(--content);font-size:.78rem;margin-top:3px}
+  .price .conv{padding:0 16px 12px}
+  svg.chart{width:100%;height:auto;overflow:visible;display:block}
   .loading{text-align:center;padding:24px 0}
   .ring{width:96px;height:96px;margin:0 auto 14px}
   .note{font-size:.75rem;color:#b6bcc3;text-align:center;padding:10px}
@@ -413,7 +427,15 @@ function renderLayer(l, step){
     }
     case 'arguments': {
       const box = h('div','stack');
-      (c.arguments||[]).forEach(a => box.appendChild(h('div','', fillVars(a.text))));
+      (c.arguments||[]).forEach(a => {
+        const card = h('div','arg-card');
+        if (a.image && a.image.src){
+          if (a.image.type === 'emoji') card.appendChild(h('div','arg-emoji', a.image.src));
+          else { const w = h('div','arg-img'); const im = h('img'); im.src = a.image.src; im.alt=''; w.appendChild(im); card.appendChild(w); }
+        }
+        card.appendChild(h('div','', fillVars(a.text)));
+        box.appendChild(card);
+      });
       return box;
     }
     case 'button': {
@@ -496,13 +518,20 @@ function renderLayer(l, step){
     }
     case 'metric': {
       const box = h('div','metric');
-      if (c.show_title !== false && c.title) box.appendChild(h('div','sub', c.title));
+      const color = (l.design && l.design.color) || '';
+      const isSolid = /bg-(red|green)/.test(color);
       const pct = Math.max(0, Math.min(100, parseFloat(c.percent||'50')));
-      const track = h('div','track' + ((l.design && /red|green/.test(l.design.color||'')) ? ' solid' : ''));
-      if (l.design && /red|green/.test(l.design.color||'')){
+      if (c.show_title !== false && c.title){
+        const head = h('div','metric-head');
+        head.appendChild(h('span','', c.title));
+        if (c.show_percent !== false && c.percent && !isSolid) head.appendChild(h('span','pct', c.percent + '%'));
+        box.appendChild(head);
+      }
+      if (c.subtitle && !isSolid) box.appendChild(h('div','metric-sub', c.subtitle));
+      const track = h('div','track' + (isSolid ? ' solid' : ''));
+      if (isSolid){
         const u = h('u'); u.style.width = pct+'%';
-        if ((l.design.color||'').includes('red')) u.style.background = '#ef4444';
-        if ((l.design.color||'').includes('green')) u.style.background = '#22c55e';
+        u.style.background = color.includes('red') ? '#ef4444' : '#22c55e';
         track.appendChild(u);
       }
       if (c.show_dot !== false){ const b = h('b'); b.style.left = pct+'%'; track.appendChild(b); }
@@ -512,24 +541,62 @@ function renderLayer(l, step){
         c.legends.split(',').forEach(t => lg.appendChild(h('span','', t.trim())));
         box.appendChild(lg);
       }
-      if (c.subtitle) box.appendChild(h('div','sub', c.subtitle));
+      if (c.subtitle && isSolid) box.appendChild(h('div','sub', c.subtitle));
       return box;
     }
     case 'charts': {
       const ds = (c.datasets||[])[0];
-      if (!ds) return null;
-      const vals = (ds.datas||[]).map(d => parseFloat(d.value)||0);
+      if (!ds || !ds.datas || !ds.datas.length) return null;
+      const datas = ds.datas;
+      const vals = datas.map(d => parseFloat(d.value)||0);
       const max = Math.max(...vals, 1), n = vals.length;
-      const W = 320, H = 150, pad = 10;
-      const pts = vals.map((v,i) => [pad + i*(W-2*pad)/(n-1), H - pad - (v/max)*(H-2*pad)]);
+      const W = 340, H = 200, padX = 14, padT = 34, padB = 22;
+      const x = i => padX + i * (W - 2*padX) / (n - 1);
+      const y = v => padT + (1 - v/max) * (H - padT - padB);
+      const pts = vals.map((v,i) => [x(i), y(v)]);
       const dLine = pts.map((p,i) => (i?'L':'M')+p[0].toFixed(1)+' '+p[1].toFixed(1)).join(' ');
-      const area = dLine + ` L ${W-pad} ${H-pad} L ${pad} ${H-pad} Z`;
-      const svg = `<svg class="chart" viewBox="0 0 ${W} ${H+20}">
-        <defs><linearGradient id="g" x1="0" x2="1"><stop offset="0" stop-color="#dc2626"/><stop offset="55%" stop-color="#fbbf24"/><stop offset="100%" stop-color="#22c55e"/></linearGradient></defs>
-        <path d="${area}" fill="url(#g)" opacity="0.18"/>
-        <path d="${dLine}" fill="none" stroke="url(#g)" stroke-width="3"/>
-        ${pts.map((p,i)=>`<circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="3.5" fill="#fff" stroke="var(--theme)" stroke-width="2"/>`).join('')}
-        ${(c.xAxis||[]).map((t,i)=> t?`<text x="${(pad+i*(W-2*pad)/(n-1)).toFixed(1)}" y="${H+12}" font-size="10" fill="#9aa0a6" text-anchor="middle">${t}</text>`:'').join('')}
+      const area = dLine + ` L ${x(n-1).toFixed(1)} ${(H-padB).toFixed(1)} L ${x(0).toFixed(1)} ${(H-padB).toFixed(1)} Z`;
+      const gridX = pts.map(p => `<line x1="${p[0].toFixed(1)}" y1="${padT}" x2="${p[0].toFixed(1)}" y2="${H-padB}" stroke="#e6e8eb" stroke-width="1" stroke-dasharray="3 3"/>`).join('');
+      const rows = 4;
+      const gridY = Array.from({length: rows+1}, (_,r) => {
+        const yy = padT + r*(H-padT-padB)/rows;
+        return `<line x1="${padX}" y1="${yy.toFixed(1)}" x2="${W-padX}" y2="${yy.toFixed(1)}" stroke="#e6e8eb" stroke-width="1" stroke-dasharray="3 3"/>`;
+      }).join('');
+      const lerpColor = t => {
+        const c1=[0xdc,0x26,0x26], c2=[0xfb,0xbf,0x24], c3=[0x22,0xc5,0x5e];
+        const [a,b,f] = t < .5 ? [c1,c2,t*2] : [c2,c3,(t-.5)*2];
+        return 'rgb('+a.map((v,i)=>Math.round(v+(b[i]-v)*f)).join(',')+')';
+      };
+      const dots = pts.map((p,i) => {
+        const d = datas[i];
+        if (d.hiddenDot) return '';
+        const col = lerpColor(i/(n-1));
+        const big = d.featured || i === 0 || i === n-1;
+        const halo = !big ? `<circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="9" fill="#cfd4da" opacity="0.5"/>` : '';
+        return halo + `<circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="${big?6:4}" fill="${col}" stroke="#fff" stroke-width="${big?2.5:1.5}"/>`;
+      }).join('');
+      const pills = datas.map((d,i) => {
+        if (!d.tooltip) return '';
+        const p = pts[i];
+        const txt = fillVars(d.tooltip);
+        const last = i === n-1;
+        const w = txt.length * 8 + 16;
+        const px = Math.max(2, Math.min(W - w - 2, p[0] - w/2));
+        const py = last ? p[1] - 34 : p[1] - 30;
+        const fill = last ? 'var(--theme)' : '#ffffff';
+        const tcol = last ? '#ffffff' : '#111827';
+        const bd = last ? 'none' : '#d1d5db';
+        return `<g><rect x="${px.toFixed(1)}" y="${py.toFixed(1)}" width="${w}" height="24" rx="7" fill="${fill}" stroke="${bd}"/>`
+          + `<text x="${(px+w/2).toFixed(1)}" y="${(py+16).toFixed(1)}" text-anchor="middle" font-size="12" font-weight="700" fill="${tcol}">${txt}</text></g>`;
+      }).join('');
+      const xl = (c.xAxis||[]).map((t,i) => t
+        ? `<text x="${x(i).toFixed(1)}" y="${H-4}" font-size="11" fill="#9aa0a6" text-anchor="${i===0?'start':(i===n-1?'end':'middle')}">${t}</text>` : '').join('');
+      const svg = `<svg class="chart" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet">
+        <defs><linearGradient id="chg" x1="0" x2="1"><stop offset="0" stop-color="#dc2626"/><stop offset="50%" stop-color="#fbbf24"/><stop offset="100%" stop-color="#22c55e"/></linearGradient></defs>
+        ${gridY}${gridX}
+        <path d="${area}" fill="url(#chg)" opacity="0.16"/>
+        <path d="${dLine}" fill="none" stroke="url(#chg)" stroke-width="3.5" stroke-linejoin="round"/>
+        ${dots}${pills}${xl}
       </svg>`;
       return h('div','', svg);
     }
@@ -545,11 +612,15 @@ function renderLayer(l, step){
     }
     case 'price': {
       const box = h('div','price');
-      if (c.title) box.appendChild(h('div','', fillVars(c.title)));
-      if (c.featured) box.appendChild(h('div','feat', c.featured));
-      if (c.before) box.appendChild(h('div','before', c.before));
-      box.appendChild(h('div','big', c.value || ''));
-      if (c.after) box.appendChild(h('div','after', c.after));
+      if (c.featured) box.appendChild(h('div','feat', fillVars(c.featured)));
+      const body = h('div','pbody');
+      if (c.title) body.appendChild(h('div','ptitle', fillVars(c.title)));
+      const col = h('div','pcol');
+      if (c.before) col.appendChild(h('div','before', c.before));
+      col.appendChild(h('div','big', c.value || ''));
+      if (c.after) col.appendChild(h('div','after', c.after));
+      body.appendChild(col);
+      box.appendChild(body);
       box.appendChild(h('div','conv', 'El importe se cobra convertido automáticamente a la moneda de tu país.'));
       return box;
     }
