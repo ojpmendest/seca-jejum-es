@@ -63,6 +63,12 @@
   button.cta{width:100%;min-height:var(--el);border:0;border-radius:var(--radius);background:var(--theme);color:#fff;
     font-family:inherit;font-size:1rem;font-weight:700;cursor:pointer;padding:12px 18px;box-shadow:0 8px 20px -8px var(--theme)}
   button.cta:active{transform:translateY(1px)}
+  button.cta.pulse{animation:ctaPulse 1.6s ease-in-out infinite}
+  @keyframes ctaPulse{
+    0%,100%{transform:scale(1);box-shadow:0 8px 20px -8px var(--theme)}
+    50%{transform:scale(1.035);box-shadow:0 12px 30px -6px var(--theme)}
+  }
+  @media (prefers-reduced-motion:reduce){button.cta.pulse{animation:none}}
   .opts{display:grid;gap:10px}
   .opts.grid2{grid-template-columns:1fr 1fr}
   .opt{display:flex;align-items:center;gap:12px;width:100%;text-align:left;border:1.5px solid #e6e8eb;background:#fff;
@@ -439,7 +445,7 @@ function renderLayer(l, step){
       return box;
     }
     case 'button': {
-      const b = h('button','cta'); b.textContent = c.label || 'Continuar';
+      const b = h('button','cta' + ((l.design && l.design.pulse) ? ' pulse' : '')); b.textContent = c.label || 'Continuar';
       b.onclick = () => {
         if (c.type === 'redirect' && /^https?:/.test(c.destination || '')) { window.open(c.destination, '_blank'); return; }
         goto(c.destination);
