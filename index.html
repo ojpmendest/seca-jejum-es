@@ -20,9 +20,9 @@
   header .bar > i{display:block;height:100%;background:var(--theme);width:0;transition:width .35s ease}
   header .logo{display:block;height:28px;margin:0 auto 8px}
   .back{position:absolute;left:16px;top:12px;border:0;background:none;font-size:20px;color:#9aa0a6;cursor:pointer;line-height:1}
-  main{flex:1;padding:14px 20px 28px;animation:fade .3s ease;display:flex;flex-direction:column;justify-content:center}
+  main{flex:1;min-width:0;padding:14px 20px 28px;animation:fade .3s ease;display:flex;flex-direction:column;justify-content:center}
   #app.tall main{justify-content:flex-start}
-  main > .stack{width:100%}
+  main > .stack{width:100%;min-width:0}
   @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
   h1,h2,h3{line-height:1.3;margin:.4em 0}
   h1{font-size:1.6rem;font-weight:800}h2{font-size:1.5rem;font-weight:700}h3{font-size:1.15rem;font-weight:600}
@@ -88,6 +88,27 @@
   .field input{width:100%;min-height:var(--el);border:1.5px solid #e6e8eb;border-radius:var(--radius);
     padding:10px 16px;font:inherit;font-size:1.05rem;text-align:center}
   .field input:focus{outline:0;border-color:var(--theme)}
+  .ruler-wrap{text-align:center;width:100%;min-width:0}
+  .ruler-box,.ruler{width:100%;min-width:0}
+  .unit-toggle{display:inline-flex;background:#eef0f2;border-radius:999px;padding:4px;gap:2px;margin-bottom:20px}
+  .useg{border:0;background:none;font:inherit;font-weight:600;color:var(--content);padding:8px 24px;border-radius:999px;cursor:pointer}
+  .useg.on{background:var(--theme);color:#fff}
+  .ruler-val{font-size:2.6rem;font-weight:800;color:var(--title);line-height:1;margin-bottom:10px}
+  .ruler-val span{font-size:1rem;font-weight:700;margin-left:3px}
+  .ruler-box{position:relative}
+  .ruler{position:relative;overflow-x:scroll;overflow-y:hidden;height:76px;scrollbar-width:none;-webkit-overflow-scrolling:touch;border-bottom:1px solid #e6e8eb}
+  .ruler::-webkit-scrollbar{display:none}
+  .ruler-track{display:flex;align-items:flex-start;height:100%;width:max-content}
+  .rsp{flex:none}
+  .tick{position:relative;height:13px;flex:none}
+  .tick::before{content:"";position:absolute;left:0;top:0;width:1px;height:100%;background:#cbd0d6}
+  .tick.mid{height:19px}
+  .tick.maj{height:30px}
+  .tick.maj::before{background:#9aa0a6}
+  .tlab{position:absolute;top:34px;left:0;transform:translateX(-50%);font-size:.82rem;color:var(--content);white-space:nowrap}
+  .ruler-mark{position:absolute;left:50%;top:0;width:3px;height:42px;background:var(--theme);transform:translateX(-50%);z-index:2;pointer-events:none}
+  .ruler-mark::after{content:"";position:absolute;bottom:-7px;left:50%;transform:translateX(-50%);border:7px solid transparent;border-top-color:var(--theme)}
+  .ruler-hint{font-size:.82rem;color:var(--content);margin:10px 0 20px}
   .metric{margin:14px 0}
   .metric .track{position:relative;height:12px;border-radius:999px;
     background:linear-gradient(90deg,#dc2626,#fbbf24 55%,#22c55e)}
@@ -252,6 +273,111 @@ function stepNextButton(step){
   return b ? (b.content.destination || 'next') : 'next';
 }
 
+function rulerControl(l, step){
+  const c = l.content || {};
+  const isH = l.type === 'height';
+  const base = isH ? 'cm' : 'kg';
+  const units = isH
+    ? [{ k: 'cm', min: 120, max: 220, px: 8 }, { k: 'pulg', min: 47, max: 87, px: 20 }]
+    : [{ k: 'kg', min: 40, max: 160, px: 8 }, { k: 'lb', min: 90, max: 350, px: 4 }];
+  const conv = (v, from, to) => from === to ? v
+    : isH ? (from === 'cm' ? v / 2.54 : v * 2.54)
+          : (from === 'kg' ? v * 2.20462 : v / 2.20462);
+  let ui = 0;
+  let val = parseFloat(c.value) || (isH ? 170 : 70);
+
+  const box = h('div', 'ruler-wrap stack');
+
+  const toggle = h('div', 'unit-toggle');
+  units.forEach((u, i) => {
+    const seg = h('button', 'useg' + (i === 0 ? ' on' : ''), u.k);
+    seg.onclick = () => {
+      if (i === ui) return;
+      val = conv(val, units[ui].k, u.k);
+      ui = i;
+      [...toggle.children].forEach((x, j) => x.classList.toggle('on', j === i));
+      build();
+    };
+    toggle.appendChild(seg);
+  });
+  box.appendChild(toggle);
+
+  const bigv = h('div', 'ruler-val');
+  box.appendChild(bigv);
+
+  const rbox = h('div', 'ruler-box');
+  const ruler = h('div', 'ruler');
+  const mark = h('div', 'ruler-mark');
+  rbox.appendChild(ruler); rbox.appendChild(mark);
+  box.appendChild(rbox);
+  box.appendChild(h('div', 'ruler-hint', 'Arrastra para ajustar'));
+  // no button here — the step's own button layer advances; we just keep S updated live
+  if ((step.layers || []).every(x => x.type !== 'button')) {
+    const cont = h('button', 'cta', 'Continuar');
+    cont.onclick = () => goto(stepNextButton(step));
+    box.appendChild(cont);
+  }
+
+  const setBig = () => {
+    bigv.innerHTML = '<b>' + Math.round(val) + '</b><span>' + units[ui].k + '</span>';
+    if (c.name) S[c.name] = Math.round(conv(val, units[ui].k, base));
+  };
+
+  let snapT, ticks = [];
+  function centerFor(i) {
+    const t = ticks[i];
+    return t.offsetLeft + t.offsetWidth / 2 - ruler.clientWidth / 2;
+  }
+  function nearestIndex() {
+    const c = ruler.scrollLeft + ruler.clientWidth / 2;
+    let best = 0, bd = Infinity;
+    for (let i = 0; i < ticks.length; i++) {
+      const d = Math.abs(ticks[i].offsetLeft + ticks[i].offsetWidth / 2 - c);
+      if (d < bd) { bd = d; best = i; }
+    }
+    return best;
+  }
+  function build() {
+    const u = units[ui];
+    ruler.innerHTML = '';
+    const track = h('div', 'ruler-track');
+    const half = h('div', 'rsp'); half.style.width = '50%';
+    track.appendChild(half);
+    ticks = [];
+    for (let n = u.min; n <= u.max; n++) {
+      const t = h('div', 'tick' + (n % 10 === 0 ? ' maj' : (n % 5 === 0 ? ' mid' : '')));
+      t.style.width = u.px + 'px';
+      if (n % 10 === 0) t.appendChild(h('span', 'tlab', String(n)));
+      track.appendChild(t);
+      ticks.push(t);
+    }
+    const half2 = h('div', 'rsp'); half2.style.width = '50%';
+    track.appendChild(half2);
+    ruler.appendChild(track);
+    let lock = true;
+    requestAnimationFrame(() => {
+      val = Math.max(u.min, Math.min(u.max, Math.round(val)));
+      ruler.scrollLeft = centerFor(val - u.min);
+      setBig();
+      setTimeout(() => { lock = false; }, 60);
+    });
+    ruler.onscroll = () => {
+      if (lock) return;
+      const u2 = units[ui];
+      val = u2.min + nearestIndex();
+      setBig();
+      clearTimeout(snapT);
+      snapT = setTimeout(() => {
+        lock = true;
+        ruler.scrollTo({ left: centerFor(nearestIndex()) });
+        setTimeout(() => { lock = false; }, 60);
+      }, 130);
+    };
+  }
+  build();
+  return box;
+}
+
 function renderLayer(l, step){
   const c = l.content || {};
   switch(l.type){
@@ -334,11 +460,12 @@ function renderLayer(l, step){
       }
       return box;
     }
-    case 'height': case 'weight': case 'field': {
+    case 'height': case 'weight':
+      return rulerControl(l, step);
+    case 'field': {
       const box = h('div','field stack');
-      const unit = l.type === 'height' ? 'cm' : l.type === 'weight' ? 'kg' : '';
-      const inp = h('input'); inp.type = 'number';
-      inp.placeholder = c.placeholder || (l.type==='height'?'Tu altura ('+unit+')':l.type==='weight'?'Tu peso ('+unit+')':'');
+      const inp = h('input'); inp.type = c.type === 'number' ? 'number' : 'text';
+      inp.placeholder = c.placeholder || '';
       if (c.value) inp.value = c.value;
       box.appendChild(inp);
       const b = h('button','cta'); b.textContent = 'Continuar';
