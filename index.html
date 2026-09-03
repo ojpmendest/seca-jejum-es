@@ -96,7 +96,8 @@
   .ruler-val{font-size:2.6rem;font-weight:800;color:var(--title);line-height:1;margin-bottom:10px}
   .ruler-val span{font-size:1rem;font-weight:700;margin-left:3px}
   .ruler-box{position:relative}
-  .ruler{position:relative;overflow-x:scroll;overflow-y:hidden;height:76px;scrollbar-width:none;-webkit-overflow-scrolling:touch;border-bottom:1px solid #e6e8eb}
+  .ruler{position:relative;overflow-x:scroll;overflow-y:hidden;height:76px;scrollbar-width:none;-webkit-overflow-scrolling:touch;border-bottom:1px solid #e6e8eb;cursor:grab;user-select:none;-webkit-user-select:none}
+  .ruler.grabbing{cursor:grabbing}
   .ruler::-webkit-scrollbar{display:none}
   .ruler-track{display:flex;align-items:flex-start;height:100%;width:max-content}
   .rsp{flex:none}
@@ -309,6 +310,23 @@ function rulerControl(l, step){
   const ruler = h('div', 'ruler');
   const mark = h('div', 'ruler-mark');
   rbox.appendChild(ruler); rbox.appendChild(mark);
+
+  // mouse drag (desktop) — touch uses native scroll
+  let drag = null;
+  ruler.addEventListener('pointerdown', e => {
+    if (e.pointerType === 'touch') return;
+    drag = { x: e.clientX, s: ruler.scrollLeft };
+    ruler.classList.add('grabbing');
+    ruler.setPointerCapture(e.pointerId);
+  });
+  ruler.addEventListener('pointermove', e => {
+    if (!drag) return;
+    ruler.scrollLeft = drag.s - (e.clientX - drag.x);
+  });
+  const endDrag = () => { drag = null; ruler.classList.remove('grabbing'); };
+  ruler.addEventListener('pointerup', endDrag);
+  ruler.addEventListener('pointercancel', endDrag);
+  ruler.addEventListener('wheel', e => { ruler.scrollLeft += e.deltaY + e.deltaX; e.preventDefault(); }, { passive: false });
   box.appendChild(rbox);
   box.appendChild(h('div', 'ruler-hint', 'Arrastra para ajustar'));
   // no button here — the step's own button layer advances; we just keep S updated live
