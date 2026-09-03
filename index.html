@@ -203,7 +203,10 @@ function goto(dest){
 }
 
 function fillVars(html){
-  return String(html || '').replace(/\{\{\s*([\w-]+)\s*\}\}/g, (m, k) => (S[k] != null && S[k] !== '') ? S[k] : (/peso/i.test(k) ? '68' : m));
+  return String(html || '')
+    .replace(/<span[^>]*>(?:\s|&nbsp;| |﻿)*<\/span>/gi, '')
+    .replace(/﻿/g, '')
+    .replace(/\{\{\s*([\w-]+)\s*\}\}/g, (m, k) => (S[k] != null && S[k] !== '') ? S[k] : (/peso/i.test(k) ? '68' : m));
 }
 
 function render(isBack){
