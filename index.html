@@ -204,10 +204,7 @@ function renderLayer(l, step){
     case 'button': {
       const b = h('button','cta'); b.textContent = c.label || 'Continuar';
       b.onclick = () => {
-        if (c.type === 'redirect' && /^https?:/.test(c.destination || '')) {
-          if (window.fbq) fbq('track', 'InitiateCheckout');
-          window.open(c.destination, '_blank'); return;
-        }
+        if (c.type === 'redirect' && /^https?:/.test(c.destination || '')) { window.open(c.destination, '_blank'); return; }
         goto(c.destination);
       };
       return b;
