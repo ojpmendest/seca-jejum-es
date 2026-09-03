@@ -1,0 +1,303 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Seca Jejum — Quiz (ES)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --theme:#14b8a6; --title:#030712; --content:#71717a; --bg:#ffffff;
+    --radius:1rem; --el:56px;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:#e9eef4;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,sans-serif;color:var(--title)}
+  #app{max-width:480px;margin:0 auto;min-height:100vh;background:var(--bg);display:flex;flex-direction:column}
+  header{position:sticky;top:0;background:var(--bg);padding:14px 20px 10px;z-index:5}
+  header .bar{height:6px;border-radius:999px;background:#eceef1;overflow:hidden}
+  header .bar > i{display:block;height:100%;background:var(--theme);width:0;transition:width .35s ease}
+  header .logo{display:block;height:34px;margin:0 auto 10px}
+  .back{position:absolute;left:16px;top:14px;border:0;background:none;font-size:20px;color:#9aa0a6;cursor:pointer;line-height:1}
+  main{flex:1;padding:14px 20px 28px;animation:fade .3s ease}
+  @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+  h1,h2,h3{line-height:1.28;margin:.4em 0}
+  h1{font-size:1.5rem;font-weight:800}h2{font-size:1.22rem;font-weight:700}h3{font-size:1.05rem;font-weight:600}
+  p{color:var(--content);line-height:1.55;margin:.5em 0}
+  .ql-align-center{text-align:center}
+  img{max-width:100%;height:auto;display:block}
+  .stack > * + *{margin-top:12px}
+  .spacer{height:16px}
+  .imgwrap{display:flex;justify-content:center}
+  .imgwrap img{border-radius:var(--radius);max-height:340px;width:auto}
+  button.cta{width:100%;min-height:var(--el);border:0;border-radius:var(--radius);background:var(--theme);color:#fff;
+    font-family:inherit;font-size:1rem;font-weight:700;cursor:pointer;padding:12px 18px;box-shadow:0 8px 20px -8px var(--theme)}
+  button.cta:active{transform:translateY(1px)}
+  .opts{display:grid;gap:10px}
+  .opts.grid2{grid-template-columns:1fr 1fr}
+  .opt{display:flex;align-items:center;gap:12px;width:100%;text-align:left;border:1.5px solid #e6e8eb;background:#fff;
+    border-radius:var(--radius);padding:12px 14px;font:inherit;font-size:.98rem;color:var(--title);cursor:pointer;min-height:var(--el)}
+  .opt:hover{border-color:var(--theme)}
+  .opt.sel{border-color:var(--theme);background:color-mix(in srgb,var(--theme) 8%,#fff)}
+  .opt.col{flex-direction:column;text-align:center}
+  .opt img{width:56px;height:56px;object-fit:contain;border-radius:10px}
+  .opt.col img{width:100%;height:120px;object-fit:cover}
+  .opt p{margin:0;color:inherit}
+  .field input{width:100%;min-height:var(--el);border:1.5px solid #e6e8eb;border-radius:var(--radius);
+    padding:10px 16px;font:inherit;font-size:1.05rem;text-align:center}
+  .field input:focus{outline:0;border-color:var(--theme)}
+  .metric{margin:14px 0}
+  .metric .track{position:relative;height:12px;border-radius:999px;
+    background:linear-gradient(90deg,#dc2626,#fbbf24 55%,#22c55e)}
+  .metric .track.solid{background:#e6e8eb}
+  .metric .track > b{position:absolute;top:50%;width:20px;height:20px;border-radius:50%;background:#fff;
+    border:3px solid var(--theme);transform:translate(-50%,-50%)}
+  .metric .track > u{position:absolute;top:50%;height:12px;border-radius:999px;background:var(--theme);transform:translateY(-50%);left:0}
+  .legends{display:flex;justify-content:space-between;color:var(--content);font-size:.78rem;margin-top:6px}
+  .sub{font-weight:600;margin-top:8px}
+  .alert{border-radius:var(--radius);padding:14px 16px;font-size:.95rem}
+  .alert.info{background:#eff6ff;color:#1e3a8a}
+  .alert.warning{background:#fef3c7;color:#92400e}
+  .alert.success{background:#ecfdf5;color:#065f46}
+  .alert p{color:inherit;margin:.3em 0}
+  .carousel{display:flex;gap:12px;overflow-x:auto;padding-bottom:8px;scroll-snap-type:x mandatory}
+  .carousel > div{flex:0 0 78%;scroll-snap-align:center}
+  .carousel img{border-radius:var(--radius)}
+  .price{border:2px solid var(--theme);border-radius:var(--radius);padding:16px;text-align:center}
+  .price .feat{color:var(--content);font-weight:600;font-size:.9rem}
+  .price .big{font-size:2rem;font-weight:800;color:var(--theme)}
+  .price .before{color:var(--content);font-size:.85rem}
+  .price .after{color:var(--content);font-size:.85rem;margin-top:4px}
+  svg.chart{width:100%;height:180px;overflow:visible}
+  .loading{text-align:center;padding:24px 0}
+  .ring{width:96px;height:96px;margin:0 auto 14px}
+  .note{font-size:.75rem;color:#b6bcc3;text-align:center;padding:10px}
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <button class="back" id="back" title="Volver">‹</button>
+    <img class="logo" id="logo" alt="">
+    <div class="bar"><i id="prog"></i></div>
+  </header>
+  <main id="main"></main>
+  <div class="note">Clon de vista previa · traducción PT→ES · imágenes servidas desde el origen</div>
+</div>
+<script>
+const S = {};
+let quiz, stepIndex = 0, history = [], selected = new Set();
+
+fetch('quiz.json').then(r => r.json()).then(q => {
+  quiz = q;
+  const jump = parseInt(new URLSearchParams(location.search).get('step'), 10);
+  if (!isNaN(jump) && jump >= 0 && jump < q.steps.length) stepIndex = jump;
+  const d = q.design || {};
+  const rs = document.documentElement.style;
+  if (d.themeColor) rs.setProperty('--theme', d.themeColor);
+  if (d.titleColor) rs.setProperty('--title', d.titleColor);
+  if (d.contentColor) rs.setProperty('--content', d.contentColor);
+  if (d.backgroundColor) rs.setProperty('--bg', d.backgroundColor);
+  if (d.elementSize) rs.setProperty('--el', d.elementSize);
+  if (d.logo && d.logo.src) document.getElementById('logo').src = d.logo.src;
+  render();
+});
+
+document.getElementById('back').onclick = () => {
+  if (history.length) { stepIndex = history.pop(); render(true); }
+};
+
+function idxById(id){ return quiz.steps.findIndex(s => s.id === id); }
+
+function goto(dest){
+  history.push(stepIndex);
+  if (!dest || dest === 'next') stepIndex = Math.min(stepIndex + 1, quiz.steps.length - 1);
+  else { const i = idxById(dest); stepIndex = i >= 0 ? i : Math.min(stepIndex + 1, quiz.steps.length - 1); }
+  selected = new Set();
+  render();
+}
+
+function fillVars(html){
+  return String(html || '').replace(/\{\{peso ?ideal ?b?\}\}/gi, '68').replace(/\{\{pesoidealb\}\}/gi,'68').replace(/\{\{pesoideal\}\}/gi,'68');
+}
+
+function render(isBack){
+  const step = quiz.steps[stepIndex];
+  document.getElementById('prog').style.width = Math.round((stepIndex+1)/quiz.steps.length*100) + '%';
+  document.getElementById('back').style.visibility = history.length ? 'visible' : 'hidden';
+  const m = document.getElementById('main');
+  m.innerHTML = '';
+  m.style.animation = 'none'; void m.offsetWidth; m.style.animation = '';
+  const wrap = document.createElement('div');
+  wrap.className = 'stack';
+  (step.layers || []).forEach(l => {
+    const el = renderLayer(l, step);
+    if (el) wrap.appendChild(el);
+  });
+  // auto-advance for loading-only steps handled in renderLayer
+  m.appendChild(wrap);
+  window.scrollTo(0,0);
+}
+
+function h(tag, cls, html){ const e = document.createElement(tag); if(cls) e.className = cls; if(html!=null) e.innerHTML = html; return e; }
+
+function stepNextButton(step){
+  // find a button layer on this step to use as the "continue" target
+  const b = (step.layers||[]).find(l => l.type === 'button');
+  return b ? (b.content.destination || 'next') : 'next';
+}
+
+function renderLayer(l, step){
+  const c = l.content || {};
+  switch(l.type){
+    case 'text':
+      return h('div','', fillVars(c.text));
+    case 'clear':
+      return h('div','spacer');
+    case 'image': {
+      if(!c.image || !c.image.src) return null;
+      const w = h('div','imgwrap'); const im = h('img'); im.src = c.image.src; im.alt=''; w.appendChild(im); return w;
+    }
+    case 'alert': {
+      const style = (l.design && l.design.style) || 'info';
+      return h('div','alert '+style, fillVars(c.text));
+    }
+    case 'arguments': {
+      const box = h('div','stack');
+      (c.arguments||[]).forEach(a => box.appendChild(h('div','', fillVars(a.text))));
+      return box;
+    }
+    case 'button': {
+      const b = h('button','cta'); b.textContent = c.label || 'Continuar';
+      b.onclick = () => {
+        if (c.redirect && c.url) { window.open(c.url,'_blank'); return; }
+        goto(c.destination);
+      };
+      return b;
+    }
+    case 'options': {
+      const box = h('div','');
+      if (c.introduction) box.appendChild(h('div','', fillVars(c.introduction)));
+      const multi = !!c.multiple;
+      const grid = h('div','opts' + ((l.design && l.design.grid === 'grid-cols-2') ? ' grid2' : ''));
+      (c.options||[]).forEach(o => {
+        const isImg = o.image && o.image.src;
+        const btn = h('button','opt' + (isImg ? ' col' : ''));
+        if (isImg){ const im = h('img'); im.src = o.image.src; im.alt=''; btn.appendChild(im); }
+        else if (o.image && o.image.type === 'emoji' && o.image.src){ btn.appendChild(h('span','', o.image.src)); }
+        btn.appendChild(h('div','', fillVars(o.label)));
+        btn.onclick = () => {
+          if (multi){
+            btn.classList.toggle('sel');
+            o._sel = !o._sel;
+          } else {
+            goto(o.destination);
+          }
+        };
+        grid.appendChild(btn);
+      });
+      box.appendChild(grid);
+      if (multi){
+        const cont = h('button','cta'); cont.textContent = 'Continuar'; cont.style.marginTop = '14px';
+        cont.onclick = () => {
+          const picked = (c.options||[]).find(o => o._sel && o.destination && o.destination !== 'next');
+          goto(picked ? picked.destination : stepNextButton(step));
+        };
+        box.appendChild(cont);
+      }
+      return box;
+    }
+    case 'height': case 'weight': case 'field': {
+      const box = h('div','field stack');
+      const unit = l.type === 'height' ? 'cm' : l.type === 'weight' ? 'kg' : '';
+      const inp = h('input'); inp.type = 'number';
+      inp.placeholder = c.placeholder || (l.type==='height'?'Tu altura ('+unit+')':l.type==='weight'?'Tu peso ('+unit+')':'');
+      if (c.value) inp.value = c.value;
+      box.appendChild(inp);
+      const b = h('button','cta'); b.textContent = 'Continuar';
+      b.onclick = () => goto(stepNextButton(step));
+      box.appendChild(b);
+      return box;
+    }
+    case 'metric': {
+      const box = h('div','metric');
+      if (c.show_title !== false && c.title) box.appendChild(h('div','sub', c.title));
+      const pct = Math.max(0, Math.min(100, parseFloat(c.percent||'50')));
+      const track = h('div','track' + ((l.design && /red|green/.test(l.design.color||'')) ? ' solid' : ''));
+      if (l.design && /red|green/.test(l.design.color||'')){
+        const u = h('u'); u.style.width = pct+'%';
+        if ((l.design.color||'').includes('red')) u.style.background = '#ef4444';
+        if ((l.design.color||'').includes('green')) u.style.background = '#22c55e';
+        track.appendChild(u);
+      }
+      if (c.show_dot !== false){ const b = h('b'); b.style.left = pct+'%'; track.appendChild(b); }
+      box.appendChild(track);
+      if (c.legends){
+        const lg = h('div','legends');
+        c.legends.split(',').forEach(t => lg.appendChild(h('span','', t.trim())));
+        box.appendChild(lg);
+      }
+      if (c.subtitle) box.appendChild(h('div','sub', c.subtitle));
+      return box;
+    }
+    case 'charts': {
+      const ds = (c.datasets||[])[0];
+      if (!ds) return null;
+      const vals = (ds.datas||[]).map(d => parseFloat(d.value)||0);
+      const max = Math.max(...vals, 1), n = vals.length;
+      const W = 320, H = 150, pad = 10;
+      const pts = vals.map((v,i) => [pad + i*(W-2*pad)/(n-1), H - pad - (v/max)*(H-2*pad)]);
+      const dLine = pts.map((p,i) => (i?'L':'M')+p[0].toFixed(1)+' '+p[1].toFixed(1)).join(' ');
+      const area = dLine + ` L ${W-pad} ${H-pad} L ${pad} ${H-pad} Z`;
+      const svg = `<svg class="chart" viewBox="0 0 ${W} ${H+20}">
+        <defs><linearGradient id="g" x1="0" x2="1"><stop offset="0" stop-color="#dc2626"/><stop offset="55%" stop-color="#fbbf24"/><stop offset="100%" stop-color="#22c55e"/></linearGradient></defs>
+        <path d="${area}" fill="url(#g)" opacity="0.18"/>
+        <path d="${dLine}" fill="none" stroke="url(#g)" stroke-width="3"/>
+        ${pts.map((p,i)=>`<circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="3.5" fill="#fff" stroke="var(--theme)" stroke-width="2"/>`).join('')}
+        ${(c.xAxis||[]).map((t,i)=> t?`<text x="${(pad+i*(W-2*pad)/(n-1)).toFixed(1)}" y="${H+12}" font-size="10" fill="#9aa0a6" text-anchor="middle">${t}</text>`:'').join('')}
+      </svg>`;
+      return h('div','', svg);
+    }
+    case 'carousel': {
+      const box = h('div','carousel');
+      (c.items||[]).forEach(it => {
+        const card = h('div','');
+        if (it.image && it.image.src){ const im = h('img'); im.src = it.image.src; im.alt=''; card.appendChild(im); }
+        if (it.text) card.appendChild(h('div','', fillVars(it.text)));
+        box.appendChild(card);
+      });
+      return box;
+    }
+    case 'price': {
+      const box = h('div','price');
+      if (c.title) box.appendChild(h('div','', fillVars(c.title)));
+      if (c.featured) box.appendChild(h('div','feat', c.featured));
+      if (c.before) box.appendChild(h('div','before', c.before));
+      box.appendChild(h('div','big', c.value || ''));
+      if (c.after) box.appendChild(h('div','after', c.after));
+      return box;
+    }
+    case 'loading': {
+      const box = h('div','loading');
+      const secs = c.seconds || 4;
+      box.appendChild(h('div','ring', `<svg viewBox="0 0 36 36" width="96" height="96"><circle cx="18" cy="18" r="16" fill="none" stroke="#eceef1" stroke-width="3"/><circle id="ldc" cx="18" cy="18" r="16" fill="none" stroke="var(--theme)" stroke-width="3" stroke-dasharray="100" stroke-dashoffset="100" transform="rotate(-90 18 18)" stroke-linecap="round"/></svg>`));
+      const pctEl = h('div','sub','0%');
+      box.appendChild(pctEl);
+      if (c.description) box.appendChild(h('div','', fillVars(c.description)));
+      const t0 = Date.now();
+      const iv = setInterval(() => {
+        const p = Math.min(1, (Date.now()-t0)/(secs*1000));
+        pctEl.textContent = Math.round(p*100) + '%';
+        const circ = box.querySelector('#ldc'); if (circ) circ.setAttribute('stroke-dashoffset', String(100 - p*100));
+        if (p >= 1){ clearInterval(iv); goto(c.destination); }
+      }, 60);
+      return box;
+    }
+    default:
+      return null;
+  }
+}
+</script>
+</body>
+</html>
