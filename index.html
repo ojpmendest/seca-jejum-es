@@ -129,7 +129,7 @@ src="https://www.facebook.com/tr?id=2685263701929706&ev=PageView&noscript=1"
 <div id="backwarn" hidden>
   <div class="bw-card">
     <div class="bw-title">⚠️ ¡Esta página se va a cerrar!</div>
-    <p>Si sales ahora, esta página se cerrará y no volverás a ver esta oferta.</p>
+    <p>Si sales ahora, esta página se cerrará y perderás tu progreso y tu resultado personalizado.</p>
     <button class="cta" id="bw-ok">Seguir con el test</button>
   </div>
 </div>
@@ -260,7 +260,7 @@ function renderLayer(l, step){
       if (!showScarcity) return b;
       const box = h('div');
       box.appendChild(b);
-      box.appendChild(h('div','scarcity', '🔒 No cierres esta página: si la cierras, se pierde y no podrás volver a abrir esta oferta.'));
+      box.appendChild(h('div','scarcity', '🔒 No cierres esta página: si sales, se cerrará y no podrás volver a acceder.'));
       return box;
     }
     case 'options': {
