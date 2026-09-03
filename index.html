@@ -31,6 +31,28 @@
   .row{display:flex;gap:10px;align-items:flex-start}
   .row .opts{gap:8px}
   .conv{font-size:.72rem;color:var(--content);text-align:center;margin-top:8px;line-height:1.4}
+  .scarcity{display:flex;gap:6px;align-items:center;justify-content:center;text-align:center;
+    margin-top:10px;font-size:.82rem;font-weight:600;color:#b91c1c;line-height:1.35}
+  #backwarn{position:fixed;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;z-index:9999;padding:24px}
+  #backwarn .bw-card{background:#fff;border-radius:16px;padding:24px 22px;max-width:360px;text-align:center}
+  #backwarn .bw-title{font-size:1.15rem;font-weight:800;margin-bottom:8px;color:#b91c1c}
+  #backwarn p{color:var(--title);font-size:.95rem;margin:0 0 16px}
+  #app.intro main{padding-top:4px}
+  #app.intro h1{font-size:1.3rem}
+  #app.intro h2{font-size:1.3rem;line-height:1.22}
+  #app.intro h3{font-size:1rem}
+  #app.intro .stack > * + *{margin-top:8px}
+  #app.intro .spacer{height:2px}
+  #app.intro .imgwrap img{width:auto;max-width:100%;max-height:32vh}
+  #app.intro .scarcity{margin-top:8px}
+  @media (max-height:740px){
+    #app.intro h1,#app.intro h2{font-size:1.12rem;line-height:1.2}
+    #app.intro h3{font-size:.85rem;line-height:1.3}
+    #app.intro .imgwrap img{max-height:24vh}
+    #app.intro header{padding:6px 20px 4px}
+    #app.intro .logo{height:22px;margin-bottom:4px}
+    #app.intro .scarcity{font-size:.75rem;margin-top:6px}
+  }
   .spacer{height:16px}
   .imgwrap{display:flex;justify-content:center}
   .imgwrap img{border-radius:var(--radius);width:100%;height:auto}
@@ -104,6 +126,13 @@ src="https://www.facebook.com/tr?id=2685263701929706&ev=PageView&noscript=1"
   </header>
   <main id="main"></main>
 </div>
+<div id="backwarn" hidden>
+  <div class="bw-card">
+    <div class="bw-title">⚠️ ¡No cierres esta página!</div>
+    <p>Si sales ahora, tu acceso al test y a tu plan personalizado será bloqueado.</p>
+    <button class="cta" id="bw-ok">Seguir con el test</button>
+  </div>
+</div>
 <script>
 const S = {};
 let quiz, stepIndex = 0, history = [], selected = new Set();
@@ -123,6 +152,25 @@ fetch('quiz.json').then(r => r.json()).then(q => {
   render();
 });
 
+// back-button trap: keep the visitor on the quiz + show a warning
+var trapArmed = false;
+(function backTrap(){
+  setTimeout(function(){ trapArmed = true; }, 1000);
+  var cooldownUntil = 0;
+  window.history.pushState(null, '', location.href);
+  window.addEventListener('popstate', function(){
+    window.history.pushState(null, '', location.href);
+    if (!trapArmed || Date.now() < cooldownUntil) return;
+    var bw = document.getElementById('backwarn');
+    if (bw) bw.hidden = false;
+  });
+  var ok = document.getElementById('bw-ok');
+  if (ok) ok.onclick = function(){
+    document.getElementById('backwarn').hidden = true;
+    cooldownUntil = Date.now() + 500;
+  };
+})();
+
 document.getElementById('back').onclick = () => {
   if (history.length) { stepIndex = history.pop(); render(true); }
 };
@@ -130,6 +178,7 @@ document.getElementById('back').onclick = () => {
 function idxById(id){ return quiz.steps.findIndex(s => s.id === id); }
 
 function goto(dest){
+  trapArmed = true;
   history.push(stepIndex);
   if (!dest || dest === 'next') stepIndex = Math.min(stepIndex + 1, quiz.steps.length - 1);
   else { const i = idxById(dest); stepIndex = i >= 0 ? i : Math.min(stepIndex + 1, quiz.steps.length - 1); }
@@ -145,6 +194,7 @@ function render(isBack){
   const step = quiz.steps[stepIndex];
   document.getElementById('prog').style.width = Math.round((stepIndex+1)/quiz.steps.length*100) + '%';
   document.getElementById('back').style.visibility = history.length ? 'visible' : 'hidden';
+  document.getElementById('app').classList.toggle('intro', stepIndex === 0);
   const m = document.getElementById('main');
   m.innerHTML = '';
   m.style.animation = 'none'; void m.offsetWidth; m.style.animation = '';
@@ -206,7 +256,12 @@ function renderLayer(l, step){
         if (c.type === 'redirect' && /^https?:/.test(c.destination || '')) { window.open(c.destination, '_blank'); return; }
         goto(c.destination);
       };
-      return b;
+      const showScarcity = stepIndex === 0 || c.type === 'redirect';
+      if (!showScarcity) return b;
+      const box = h('div');
+      box.appendChild(b);
+      box.appendChild(h('div','scarcity', '🔒 No cierres esta página o tu acceso será bloqueado.'));
+      return box;
     }
     case 'options': {
       const box = h('div','');
