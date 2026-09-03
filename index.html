@@ -175,6 +175,11 @@ fbq('track', 'PageView');
 src="https://www.facebook.com/tr?id=2685263701929706&ev=PageView&noscript=1"
 /></noscript>
 <!-- End Meta Pixel Code -->
+<!-- PostHog -->
+<script>
+!function(t,e){var o,n,p,r;e.__SV||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement("script")).type="text/javascript",p.crossOrigin="anonymous",p.async=!0,p.src=s.api_host.replace(".i.posthog.com","-assets.i.posthog.com")+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=function(){return u.toString(1)+".people (stub)"},o="init capture register register_once register_for_session unregister unregister_for_session getFeatureFlag getFeatureFlagPayload isFeatureEnabled reloadFeatureFlags updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures on onFeatureFlags onSessionId getSurveys getActiveMatchingSurveys renderSurvey canRenderSurvey identify setPersonProperties group resetGroups setPersonPropertiesForFlags resetPersonPropertiesForFlags setGroupPropertiesForFlags resetGroupPropertiesForFlags reset get_distinct_id getGroups get_session_id get_session_replay_url alias set_config startSessionRecording stopSessionRecording capture_pageview debug".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
+posthog.init('phc_uFiYfDxbK83mKcfPahf9C9MXWyXDpTVcbxkpRvNzL8Te',{api_host:'https://us.i.posthog.com',person_profiles:'always',capture_pageview:false});
+</script>
 </head>
 <body>
 <div id="app">
@@ -195,6 +200,38 @@ src="https://www.facebook.com/tr?id=2685263701929706&ev=PageView&noscript=1"
 <script>
 const S = {};
 let quiz, stepIndex = 0, history = [], selected = new Set();
+
+// ---- analytics ----
+const plainText = h => String(h || '').replace(/<[^>]+>/g, ' ').replace(/&nbsp;| /g, ' ').replace(/\s+/g, ' ').trim();
+function ph(event, props){ try { window.posthog && posthog.capture(event, props || {}); } catch(e){} }
+let phStarted = false, phDone = false, phSeen = {};
+function trackStep(step){
+  const idx = stepIndex;
+  const label = (() => {
+    for (const l of (step.layers || [])) {
+      const c = l.content || {};
+      const t = plainText(c.text || c.introduction);
+      if (t) return t.slice(0, 90);
+    }
+    return step.title;
+  })();
+  const total = quiz.steps.length;
+  if (!phStarted) { phStarted = true; ph('quiz_started', { total_steps: total }); }
+  const pageMatch = /^p(\d+)/.exec(step.title || '');
+  const page = pageMatch ? parseInt(pageMatch[1]) : idx;
+  const first = !phSeen[page];
+  phSeen[page] = true;
+  ph('quiz_step_viewed', {
+    page: page,
+    step_index: idx,
+    step_number: idx + 1,
+    step_id: step.id,
+    step_slug: step.title,
+    step_label: label,
+    progress_pct: Math.round((idx + 1) / total * 100),
+    first_time: first,
+  });
+}
 
 fetch('quiz.json').then(r => r.json()).then(q => {
   quiz = q;
@@ -254,6 +291,8 @@ function fillVars(html){
 
 function render(isBack){
   const step = quiz.steps[stepIndex];
+  if (!isBack) trackStep(step);
+  if (!phDone && stepIndex >= quiz.steps.length - 2) { phDone = true; ph('quiz_completed', { step_index: stepIndex }); }
   document.getElementById('prog').style.width = Math.round((stepIndex+1)/quiz.steps.length*100) + '%';
   document.getElementById('back').style.visibility = history.length ? 'visible' : 'hidden';
   document.getElementById('app').classList.toggle('intro', stepIndex === 0);
@@ -444,7 +483,10 @@ function renderLayer(l, step){
     case 'button': {
       const b = h('button','cta' + ((l.design && l.design.pulse) ? ' pulse' : '')); b.textContent = c.label || 'Continuar';
       b.onclick = () => {
-        if (c.type === 'redirect' && /^https?:/.test(c.destination || '')) { window.open(c.destination, '_blank'); return; }
+        if (c.type === 'redirect' && /^https?:/.test(c.destination || '')) {
+          ph('checkout_click', { step_index: stepIndex, url: c.destination });
+          window.open(c.destination, '_blank'); return;
+        }
         goto(c.destination);
       };
       const showScarcity = stepIndex === 0 || c.type === 'redirect';
@@ -458,6 +500,7 @@ function renderLayer(l, step){
       const box = h('div','');
       if (c.introduction) box.appendChild(h('div','', fillVars(c.introduction)));
       const multi = !!c.multiple;
+      const qLabel = plainText(c.introduction) || step.title;
       const dz = l.design || {};
       const vertical = dz.orientation === 'vertical';
       const showCheck = dz.icon === 'select';
@@ -485,7 +528,9 @@ function renderLayer(l, step){
           if (multi){
             btn.classList.toggle('sel');
             o._sel = !o._sel;
+            ph('quiz_answer', { step_index: stepIndex, step_slug: step.title, question: qLabel, answer: plainText(o.label), multiple: true });
           } else {
+            ph('quiz_answer', { step_index: stepIndex, step_slug: step.title, question: qLabel, answer: plainText(o.label), multiple: false });
             goto(o.destination);
           }
         };
