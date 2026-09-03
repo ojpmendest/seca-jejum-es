@@ -485,7 +485,15 @@ function renderLayer(l, step){
       b.onclick = () => {
         if (c.type === 'redirect' && /^https?:/.test(c.destination || '')) {
           ph('checkout_click', { step_index: stepIndex, url: c.destination });
-          window.open(c.destination, '_blank'); return;
+          let url = c.destination;
+          try {
+            const inc = new URLSearchParams(location.search);
+            const pass = new URLSearchParams();
+            for (const [k, v] of inc) if (/^(fbclid|gclid|ttclid|utm_|src|sck|xcod)/i.test(k)) pass.set(k, v);
+            const q = pass.toString();
+            if (q) url += (url.includes('?') ? '&' : '?') + q;
+          } catch (e) {}
+          window.open(url, '_blank'); return;
         }
         goto(c.destination);
       };
