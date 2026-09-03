@@ -69,6 +69,9 @@
   .opt:hover{border-color:var(--theme)}
   .opt.sel{border-color:var(--theme);background:color-mix(in srgb,var(--theme) 8%,#fff)}
   .opt img{width:52px;height:52px;object-fit:contain;border-radius:10px;flex:none}
+  .opt .emoji{font-size:28px;line-height:1;flex:none}
+  .opt:not(.col) > div{flex:1}
+  .opt.rev{flex-direction:row-reverse}
   .opt > .chev{margin-left:auto;color:var(--content);font-size:1.25rem;line-height:1}
   .opt p{margin:0;color:inherit}
   .opt.col{flex-direction:column;text-align:left;padding:0;gap:0;overflow:hidden;align-items:stretch}
@@ -282,10 +285,12 @@ function renderLayer(l, step){
       const showChev = ['right','select','arrow','chevron'].includes(dz.icon) && (dz.iconPosition || 'end') === 'end';
       const grid = h('div','opts' + (dz.grid === 'grid-cols-2' ? ' grid2' : ''));
       (c.options||[]).forEach(o => {
-        const isImg = o.image && o.image.src;
-        const btn = h('button','opt' + (vertical ? ' col' : ''));
+        const isEmoji = o.image && o.image.type === 'emoji' && o.image.src;
+        const isImg = o.image && o.image.src && !isEmoji;
+        const hasIcon = isImg || isEmoji;
+        const btn = h('button','opt' + (vertical ? ' col' : (dz.order === 'reverse' && hasIcon ? ' rev' : '')));
         if (isImg){ const im = h('img'); im.src = o.image.src; im.alt=''; btn.appendChild(im); }
-        else if (o.image && o.image.type === 'emoji' && o.image.src){ btn.appendChild(h('span','', o.image.src)); }
+        else if (isEmoji){ btn.appendChild(h('span','emoji', o.image.src)); }
         if (vertical){
           const lbl = h('div','lbl');
           lbl.appendChild(h('div','', fillVars(o.label)));
