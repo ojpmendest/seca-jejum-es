@@ -72,7 +72,8 @@
   .opts.grid2{grid-template-columns:1fr 1fr}
   .opt{display:flex;align-items:center;gap:12px;width:100%;text-align:left;border:1.5px solid #e6e8eb;background:#fff;
     border-radius:var(--radius);padding:12px 14px;font:inherit;font-size:.98rem;color:var(--title);cursor:pointer;min-height:var(--el)}
-  .opt:hover{border-color:var(--theme)}
+  @media (hover:hover){ .opt:hover{border-color:var(--theme)} }
+  .opt:focus{outline:none}
   .opt.sel{border-color:var(--theme);background:color-mix(in srgb,var(--theme) 8%,#fff)}
   .opt.sel.chkstyle{background:var(--theme)}
   .opt.sel.chkstyle *{color:#fff!important}
