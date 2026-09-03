@@ -13,18 +13,18 @@
     --radius:1rem; --el:56px;
   }
   *{box-sizing:border-box}
-  html,body{margin:0;padding:0;background:#e9eef4;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,sans-serif;color:var(--title)}
-  #app{max-width:480px;margin:0 auto;min-height:100vh;background:var(--bg);display:flex;flex-direction:column}
-  header{position:sticky;top:0;background:var(--bg);padding:14px 20px 10px;z-index:5}
+  html,body{margin:0;padding:0;background:#e9eef4;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,sans-serif;color:var(--title);font-size:16px}
+  #app{max-width:500px;margin:0 auto;min-height:100vh;background:var(--bg);display:flex;flex-direction:column}
+  header{position:sticky;top:0;background:var(--bg);padding:12px 20px 8px;z-index:5}
   header .bar{height:6px;border-radius:999px;background:#eceef1;overflow:hidden}
   header .bar > i{display:block;height:100%;background:var(--theme);width:0;transition:width .35s ease}
-  header .logo{display:block;height:34px;margin:0 auto 10px}
-  .back{position:absolute;left:16px;top:14px;border:0;background:none;font-size:20px;color:#9aa0a6;cursor:pointer;line-height:1}
+  header .logo{display:block;height:28px;margin:0 auto 8px}
+  .back{position:absolute;left:16px;top:12px;border:0;background:none;font-size:20px;color:#9aa0a6;cursor:pointer;line-height:1}
   main{flex:1;padding:14px 20px 28px;animation:fade .3s ease}
   @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
-  h1,h2,h3{line-height:1.28;margin:.4em 0}
-  h1{font-size:1.5rem;font-weight:800}h2{font-size:1.22rem;font-weight:700}h3{font-size:1.05rem;font-weight:600}
-  p{color:var(--content);line-height:1.55;margin:.5em 0}
+  h1,h2,h3{line-height:1.3;margin:.4em 0}
+  h1{font-size:1.65rem;font-weight:800}h2{font-size:1.4rem;font-weight:700}h3{font-size:1.12rem;font-weight:600}
+  p{color:var(--content);line-height:1.5;margin:.5em 0;font-size:1rem}
   .ql-align-center{text-align:center}
   img{max-width:100%;height:auto;display:block}
   .stack > * + *{margin-top:12px}
@@ -33,7 +33,7 @@
   .conv{font-size:.72rem;color:var(--content);text-align:center;margin-top:8px;line-height:1.4}
   .spacer{height:16px}
   .imgwrap{display:flex;justify-content:center}
-  .imgwrap img{border-radius:var(--radius);max-height:340px;width:auto}
+  .imgwrap img{border-radius:var(--radius);width:100%;height:auto}
   button.cta{width:100%;min-height:var(--el);border:0;border-radius:var(--radius);background:var(--theme);color:#fff;
     font-family:inherit;font-size:1rem;font-weight:700;cursor:pointer;padding:12px 18px;box-shadow:0 8px 20px -8px var(--theme)}
   button.cta:active{transform:translateY(1px)}
@@ -103,7 +103,6 @@ src="https://www.facebook.com/tr?id=2685263701929706&ev=PageView&noscript=1"
     <div class="bar"><i id="prog"></i></div>
   </header>
   <main id="main"></main>
-  <div class="note">Clon de vista previa · traducción PT→ES · imágenes servidas desde el origen</div>
 </div>
 <script>
 const S = {};
