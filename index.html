@@ -485,10 +485,13 @@ function renderLayer(l, step){
       const inp = h('input'); inp.type = c.type === 'number' ? 'number' : 'text';
       inp.placeholder = c.placeholder || '';
       if (c.value) inp.value = c.value;
+      inp.oninput = () => { if (c.name) S[c.name] = inp.value; };
       box.appendChild(inp);
-      const b = h('button','cta'); b.textContent = 'Continuar';
-      b.onclick = () => { if (c.name) S[c.name] = inp.value; goto(stepNextButton(step)); };
-      box.appendChild(b);
+      if ((step.layers || []).every(x => x.type !== 'button')) {
+        const b = h('button','cta'); b.textContent = 'Continuar';
+        b.onclick = () => { if (c.name) S[c.name] = inp.value; goto(stepNextButton(step)); };
+        box.appendChild(b);
+      }
       return box;
     }
     case 'metric': {
