@@ -493,7 +493,7 @@ function renderLayer(l, step){
             const q = pass.toString();
             if (q) url += (url.includes('?') ? '&' : '?') + q;
           } catch (e) {}
-          window.open(url, '_blank'); return;
+          location.href = url; return;
         }
         goto(c.destination);
       };
