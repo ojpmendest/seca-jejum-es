@@ -4,9 +4,13 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Seca Jejum — Quiz (ES)</title>
+<link rel="preload" as="fetch" href="quiz.json" crossorigin="anonymous">
+<link rel="preload" as="image" href="img/hero.jpg">
+<link rel="preload" as="image" href="img/logo.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"></noscript>
 <style>
   :root{
     --theme:#14b8a6; --title:#030712; --content:#71717a; --bg:#ffffff;
@@ -157,6 +161,10 @@
   .loading{text-align:center;padding:24px 0}
   .ring{width:96px;height:96px;margin:0 auto 14px}
   .note{font-size:.75rem;color:#b6bcc3;text-align:center;padding:10px}
+  .boot{display:flex;align-items:center;justify-content:center;padding:64px 0}
+  .boot .sp{width:34px;height:34px;border-radius:50%;border:3px solid #e6e8eb;border-top-color:var(--theme);animation:spin .8s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  @media (prefers-reduced-motion:reduce){.boot .sp{animation:none}}
 </style>
 <!-- Meta Pixel Code -->
 <script>
@@ -185,10 +193,10 @@ posthog.init('phc_uFiYfDxbK83mKcfPahf9C9MXWyXDpTVcbxkpRvNzL8Te',{api_host:'https
 <div id="app">
   <header>
     <button class="back" id="back" title="Volver">‹</button>
-    <img class="logo" id="logo" alt="">
+    <img class="logo" id="logo" src="img/logo.png" alt="">
     <div class="bar"><i id="prog"></i></div>
   </header>
-  <main id="main"></main>
+  <main id="main"><div class="boot"><div class="sp"></div></div></main>
 </div>
 <div id="backwarn" hidden>
   <div class="bw-card">
@@ -484,7 +492,6 @@ function renderLayer(l, step){
       const b = h('button','cta' + ((l.design && l.design.pulse) ? ' pulse' : '')); b.textContent = c.label || 'Continuar';
       b.onclick = () => {
         if (c.type === 'redirect' && /^https?:/.test(c.destination || '')) {
-          ph('checkout_click', { step_index: stepIndex, url: c.destination });
           let url = c.destination;
           try {
             const inc = new URLSearchParams(location.search);
@@ -493,7 +500,13 @@ function renderLayer(l, step){
             const q = pass.toString();
             if (q) url += (url.includes('?') ? '&' : '?') + q;
           } catch (e) {}
-          location.href = url; return;
+          ph('checkout_click', { step_index: stepIndex, url: c.destination });
+          trapArmed = false;
+          b.disabled = true;
+          b.textContent = 'Abriendo el pago seguro…';
+          setTimeout(function(){ window.location.href = url; }, 120);
+          setTimeout(function(){ window.location.href = url; }, 700);
+          return;
         }
         goto(c.destination);
       };
